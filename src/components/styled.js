@@ -2,12 +2,28 @@ import styled from "styled-components";
 
 export const Styled = {
     FormWrapper: styled.div`
-        max-width: 500px;
+        border: 1px solid #000;
+        max-width: 900px;
         margin: 2rem auto;
         padding: 2rem;
         border-radius: 12px;
-        background-color: #f5f5f5;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    `,
+
+    Form: styled.form``,
+    InputsWrapper: styled.div`
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+
+        .input {
+            flex: 1 0 300px;
+        }
+
+        .uploadResumeButton {
+            width: 100%;
+        }
     `,
 
     ButtonRow: styled.div`
