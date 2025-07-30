@@ -8,6 +8,24 @@ export const Styled = {
         padding: 2rem;
         border-radius: 12px;
         background-color: #fff;
+
+        .featuresUseCasesWrapper {
+            display: flex;
+            justify-content: space-between;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+
+            .features,
+            .useCases {
+                margin-bottom: 30px;
+
+                ul {
+                    li {
+                    }
+                }
+            }
+        }
     `,
 
     Form: styled.form``,
@@ -31,4 +49,6 @@ export const Styled = {
         justify-content: space-between;
         margin-top: 1.5rem;
     `,
+
+    LiveLinks: styled.div``,
 };

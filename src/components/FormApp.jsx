@@ -1,3 +1,4 @@
+import jsPDF from 'jspdf'
 import React, { useState } from 'react'
 import {
     TextField, Button, RadioGroup, Radio,
@@ -165,10 +166,96 @@ const FormApp = () => {
         setFormErrors({})
     }
 
+
+    const handleExportJSON = () => {
+        const dataStr = JSON.stringify(form, null, 2)
+        const blob = new Blob([dataStr], { type: 'application/json' })
+        const url = URL.createObjectURL(blob)
+
+        const link = document.createElement('a')
+        link.href = url
+        link.download = 'form_data.json'
+        link.click()
+        URL.revokeObjectURL(url)
+    }
+
+    const handleExportPDF = () => {
+        const doc = new jsPDF()
+        doc.setFontSize(12)
+        doc.text('React Form Submission Summary', 10, 10)
+
+        const lines = [
+            `First Name: ${form.fname}`,
+            `Last Name: ${form.lname}`,
+            `Email: ${form.email}`,
+            `Contact: ${form.contact}`,
+            `Gender: ${form.gender}`,
+            `Subjects: ${form.subjects.join(', ')}`,
+            `Resume: ${form.file?.name || 'N/A'}`,
+            `URL: ${form.url}`,
+            `Choice: ${form.choice}`,
+            `About: ${form.about}`
+        ]
+
+        lines.forEach((line, i) => {
+            doc.text(line, 10, 20 + i * 10)
+        })
+
+        doc.save('form_data.pdf')
+    }
+
+
     return (
         <>
             <Styled.FormWrapper>
                 <Typography variant="h5" align="center" color="green">Form in React</Typography>
+
+
+                <div>
+                    This project is a production-ready, advanced React form built using Vite, Material UI (MUI), and Styled-Components, showcasing modern React patterns and professional-grade UX.
+                </div>
+
+                <div className="featuresUseCasesWrapper">
+                    <div className='features'>
+                        Features:
+                        <ul>
+                            <li>✅ Vite + React — lightning-fast development setup</li>
+                            <li>🎨 Material UI + Styled-Components — consistent, elegant styling</li>
+                            <li>🔍 Real-time validation — custom error handling using regex & logic</li>
+                            <li>📂 Resume upload — supports .pdf, .doc, .docx with size checks</li>
+                            <li>📌 Multiple fields — radio, checkbox, dropdown, textarea, and file input</li>
+                            <li>📋 Modal summary — clean modal popup on successful submission</li>
+                            <li>📥 Export Options:</li>
+                            <li>📄 PDF — generates and downloads a summary PDF via jsPDF</li>
+                            <li>🗂️ JSON — downloads structured .json of form data</li>
+                            <li>🔁 Reset functionality — clears all inputs and errors</li>
+                            <li>🧪 Error feedback — form field-specific inline error messages</li>
+                            <li>💬 Toastify notifications — instant feedback with react-toastify</li>
+                            <li>🌐 URL validation — strict check for valid URLs</li>
+                            <li>📱 Responsive layout — clean experience across devices</li>
+                            <li>🧠 React Hooks (useState) — state-driven dynamic form behavior</li>
+                        </ul>
+                    </div>
+
+                    <div className='useCases'>
+                        🧠 Use-Cases:
+                        <ul>
+                            <li>Candidate onboarding forms</li>
+                            <li>Registration or feedback portals</li>
+                            <li>Resume submission pages</li>
+                            <li>Real-time validated data collection</li>
+                        </ul>
+
+                        <br /><br />
+
+                        <ul>
+                            <li>GitHub: <a href="https://github.com/a2rp/react-form-app" target="_blank">github.com/a2rp/react-form-app</a></li>
+                            <li>Live: <a href="https://a2rp.github.io/react-form-app/" target="_blank">a2rp.github.io/react-form-app/</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+
 
                 <Styled.Form onSubmit={handleSubmit}>
                     <Styled.InputsWrapper>
@@ -365,12 +452,17 @@ const FormApp = () => {
                     <Typography><strong>Choice:</strong> {form.choice}</Typography>
                     <Typography><strong>About:</strong> {form.about}</Typography>
                 </DialogContent>
-                <DialogActions>
+                <DialogActions
+                    sx={{ justifyContent: 'space-between', flexWrap: 'wrap' }}
+                >
+                    <div>
+                        <Button onClick={handleExportJSON} color="secondary" sx={{ mr: 1 }}>Export JSON</Button>
+                        <Button onClick={handleExportPDF} color="secondary">Export PDF</Button>
+                    </div>
                     <Button onClick={() => setOpenModal(false)} color="primary">Close</Button>
                 </DialogActions>
+
             </Dialog>
-
-
         </>
     )
 }
