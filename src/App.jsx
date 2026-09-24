@@ -1,16 +1,16 @@
-import FormApp from './components/FormApp'
-import { ToastContainer, toast } from 'react-toastify'
-import 'react-toastify/dist/ReactToastify.css'
+import { ToastContainer } from "react-toastify";
+import FormApp from "./components/FormApp";
+import SiteFooter from "./components/SiteFooter";
+import SiteHeader from "./components/SiteHeader";
+import "react-toastify/dist/ReactToastify.css";
 
+const App = () => (
+    <>
+        <SiteHeader />
+        <main className="pageContent"><FormApp /></main>
+        <SiteFooter />
+        <ToastContainer position="bottom-right" />
+    </>
+);
 
-const App = () => {
-    return (
-        <>
-            <FormApp />
-
-            <ToastContainer position="top-right" />
-        </>
-    )
-}
-
-export default App
+export default App;

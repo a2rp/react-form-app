@@ -78,7 +78,6 @@ const FormApp = () => {
     }
 
     const handleSubmit = (e) => {
-        // console.log("submit clicked");
 
         e.preventDefault()
 
@@ -153,7 +152,6 @@ const FormApp = () => {
 
         toast.success('Form submitted successfully 🎉')
         setOpenModal(true)
-        console.log('Form Submitted:', form)
 
     }
 
@@ -208,56 +206,30 @@ const FormApp = () => {
     return (
         <>
             <Styled.FormWrapper>
-                <Typography variant="h5" align="center" color="green">Form in React</Typography>
-
-
-                <div>
-                    This project is a production-ready, advanced React form built using Vite, Material UI (MUI), and Styled-Components, showcasing modern React patterns and professional-grade UX.
+<div className="intro" id="features">
+                    <Typography variant="h4" align="center" color="primary">Validated form workspace</Typography>
+                    <p>Collect profile details, validate every field, review the submission and export a clean summary when it is ready.</p>
                 </div>
-
                 <div className="featuresUseCasesWrapper">
-                    <div className='features'>
-                        Features:
+                    <div className="features">
+                        <strong>Included features</strong>
                         <ul>
-                            <li>✅ Vite + React — lightning-fast development setup</li>
-                            <li>🎨 Material UI + Styled-Components — consistent, elegant styling</li>
-                            <li>🔍 Real-time validation — custom error handling using regex & logic</li>
-                            <li>📂 Resume upload — supports .pdf, .doc, .docx with size checks</li>
-                            <li>📌 Multiple fields — radio, checkbox, dropdown, textarea, and file input</li>
-                            <li>📋 Modal summary — clean modal popup on successful submission</li>
-                            <li>📥 Export Options:</li>
-                            <li>📄 PDF — generates and downloads a summary PDF via jsPDF</li>
-                            <li>🗂️ JSON — downloads structured .json of form data</li>
-                            <li>🔁 Reset functionality — clears all inputs and errors</li>
-                            <li>🧪 Error feedback — form field-specific inline error messages</li>
-                            <li>💬 Toastify notifications — instant feedback with react-toastify</li>
-                            <li>🌐 URL validation — strict check for valid URLs</li>
-                            <li>📱 Responsive layout — clean experience across devices</li>
-                            <li>🧠 React Hooks (useState) — state-driven dynamic form behavior</li>
+                            <li>Real-time validation for required fields</li>
+                            <li>Resume upload checks for PDF and DOC files</li>
+                            <li>Submission preview with JSON and PDF export</li>
+                            <li>Responsive Material UI layout and toast feedback</li>
                         </ul>
                     </div>
-
-                    <div className='useCases'>
-                        🧠 Use-Cases:
+                    <div className="useCases">
+                        <strong>Useful for</strong>
                         <ul>
-                            <li>Candidate onboarding forms</li>
-                            <li>Registration or feedback portals</li>
-                            <li>Resume submission pages</li>
-                            <li>Real-time validated data collection</li>
-                        </ul>
-
-                        <br /><br />
-
-                        <ul>
-                            <li>GitHub: <a href="https://github.com/a2rp/react-form-app" target="_blank">github.com/a2rp/react-form-app</a></li>
-                            <li>Live: <a href="https://a2rp.github.io/react-form-app/" target="_blank">a2rp.github.io/react-form-app/</a></li>
+                            <li>Candidate onboarding and resume collection</li>
+                            <li>Registration and feedback forms</li>
+                            <li>Validated data collection prototypes</li>
                         </ul>
                     </div>
-
                 </div>
-
-
-                <Styled.Form onSubmit={handleSubmit}>
+                <Styled.Form id="form" onSubmit={handleSubmit}>
                     <Styled.InputsWrapper>
                         <TextField
                             label="First Name*"
