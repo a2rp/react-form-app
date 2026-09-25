@@ -6,3 +6,36 @@ body { margin: 0; color: #172033; background: #f6f8fb; font-family: "Inter", Ari
 button, input, textarea, select { font: inherit; }
 .pageContent { min-height: 100vh; padding: 98px 18px 42px; }
 a { color: #087f73; }
+
+.goTopButton {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #b8c8d6;
+    border-radius: 50%;
+    color: #087f73;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(23, 32, 51, 0.16);
+    cursor: pointer;
+    transition: border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.goTopButton:hover,
+.goTopButton:focus-visible {
+    border-color: #087f73;
+    box-shadow: 0 0 0 4px rgba(8, 127, 115, 0.12);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 560px) {
+    .goTopButton {
+        right: 16px;
+        bottom: 16px;
+    }
+}

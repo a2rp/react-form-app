@@ -11,6 +11,7 @@ A responsive React and Vite form for collecting validated profile data, checking
 - Submission summary modal with JSON and PDF export
 - Reset control, inline errors and toast feedback
 - Responsive Material UI layout with a fixed header and icon-only footer
+- Floating go-to-top control with smooth scrolling
 
 ## Tech stack
 
