@@ -1,13 +1,13 @@
 # React Form App
 
-A responsive React and Vite form for collecting validated profile data, checking resume uploads, reviewing a submission and exporting the result.
+A responsive React and Vite form demo for validating profile details, checking a selected resume file locally, reviewing the values and exporting a summary.
 
 ![React Form App preview](screenshot.png)
 
 ## Features
 
 - Field validation for names, email, phone number, URL and required choices
-- Resume upload checks for PDF and DOC files under 2 MB
+- Local PDF, DOC and DOCX file checks for files up to 2 MB; the resume is never uploaded
 - Submission summary modal with JSON and PDF export
 - Reset control, inline errors and toast feedback
 - Responsive Material UI layout with a fixed header and icon-only footer
@@ -16,6 +16,8 @@ A responsive React and Vite form for collecting validated profile data, checking
 ## Tech stack
 
 React, Vite, Material UI, styled-components, react-icons, react-toastify and jsPDF.
+
+This is a frontend-only demo. Profile data stays in the page until you reset or leave it, and exports are downloaded only when you choose them. The selected resume file itself is never uploaded or included in exports; only its filename and metadata are included.
 
 ## Run locally
 

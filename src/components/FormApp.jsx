@@ -1,5 +1,4 @@
-import jsPDF from 'jspdf'
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {
     TextField, Button, RadioGroup, Radio,
     FormControlLabel, FormLabel, Checkbox, MenuItem,
@@ -12,21 +11,34 @@ import {
 import { Styled } from './styled'
 import { toast } from 'react-toastify'
 
+const createInitialForm = () => ({
+    fname: '',
+    lname: '',
+    email: '',
+    contact: '',
+    gender: '',
+    subjects: [],
+    file: null,
+    url: '',
+    choice: '',
+    about: ''
+})
+
+const getFileError = (file) => {
+    if (!file) return 'Please select a resume file'
+    const allowedExtensions = ['pdf', 'doc', 'docx']
+    const fileExtension = file.name.split('.').pop().toLowerCase()
+
+    if (!allowedExtensions.includes(fileExtension)) return 'Only PDF, DOC or DOCX files are allowed'
+    if (file.size > 2 * 1024 * 1024) return 'File size must be 2 MB or less'
+    return ''
+}
+
 const FormApp = () => {
-    const [form, setForm] = useState({
-        fname: '',
-        lname: '',
-        email: '',
-        contact: '',
-        gender: 'Male',
-        subjects: [],
-        file: null,
-        url: '',
-        choice: 'Yes',
-        about: ''
-    })
+    const [form, setForm] = useState(createInitialForm)
     const [openModal, setOpenModal] = useState(false)
     const [formErrors, setFormErrors] = useState({})
+    const fileInputRef = useRef(null)
 
     const getValidationError = (name, value) => {
         if (!value || (typeof value === 'string' && !value.trim())) {
@@ -34,20 +46,23 @@ const FormApp = () => {
         }
 
         switch (name) {
-            case 'fname':
-            case 'lname':
-                if (value.trim().length < 3) return 'Minimum 3 characters required'
-                break
             case 'email':
-                if (!/^[\w.-]+@[a-zA-Z_-]+?\.[a-zA-Z]{2,3}$/.test(value))
-                    return 'Invalid email'
+                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) return 'Enter a valid email address'
                 break
             case 'contact':
                 if (!/^\d{10}$/.test(value)) return 'Must be 10 digits'
                 break
-            case 'url':
-                if (!/^https?:\/\/.+$/.test(value)) return 'Enter a valid URL'
+            case 'url': {
+                try {
+                    const parsedUrl = new URL(value)
+                    if (!['http:', 'https:'].includes(parsedUrl.protocol) || !parsedUrl.hostname) {
+                        return 'Enter a valid HTTP or HTTPS URL'
+                    }
+                } catch {
+                    return 'Enter a valid HTTP or HTTPS URL'
+                }
                 break
+            }
             default:
                 break
         }
@@ -68,13 +83,16 @@ const FormApp = () => {
                 ? [...form.subjects, value]
                 : form.subjects.filter(subj => subj !== value)
             setForm(prev => ({ ...prev, subjects: updatedSubjects }))
+            setFormErrors(prev => ({ ...prev, subjects: updatedSubjects.length ? '' : 'Please select at least one subject' }))
         } else if (type === 'file') {
-            setForm(prev => ({ ...prev, file: files[0] }))
+            const file = files[0] || null
+            setForm(prev => ({ ...prev, file }))
+            setFormErrors(prev => ({ ...prev, file: file ? getFileError(file) : '' }))
         } else {
             setForm(prev => ({ ...prev, [name]: value }))
         }
 
-        if (name) validateField(name, type === 'file' ? files[0] : value)
+        if (name && type !== 'file' && type !== 'checkbox') validateField(name, value)
     }
 
     const handleSubmit = (e) => {
@@ -82,91 +100,56 @@ const FormApp = () => {
         e.preventDefault()
 
         const requiredFields = ['fname', 'lname', 'email', 'contact', 'url']
-        let localErrors = {}
-        let hasError = false
+        const localErrors = {}
 
         requiredFields.forEach(field => {
             const value = form[field]
             const error = getValidationError(field, value)
             if (error) {
                 localErrors[field] = error
-                hasError = true
             }
         })
-
-        if (
-            !form.gender ||
-            form.subjects.length === 0 ||
-            !form.file ||
-            !form.choice ||
-            !form.about.trim()
-        ) {
-            hasError = true
-            toast.error('Please fill in all required fields')
-        }
 
         if (!form.subjects.length) {
             localErrors.subjects = 'Please select at least one subject'
-            hasError = true
         }
 
-        if (!form.about.trim()) {
-            localErrors.about = 'This field is required'
-            hasError = true
-        }
+        const genderError = getValidationError('gender', form.gender)
+        if (genderError) localErrors.gender = genderError
 
-        if (!form.choice) {
-            localErrors.choice = 'Please select a choice'
-            hasError = true
-        }
+        if (!form.about.trim()) localErrors.about = 'This field is required'
 
-        if (!form.file) {
-            localErrors.file = 'Please upload your resume'
-            hasError = true
-        } else {
-            const allowedExtensions = ['pdf', 'doc', 'docx']
-            const fileExtension = form.file.name.split('.').pop().toLowerCase()
+        if (!form.choice) localErrors.choice = 'Please select a choice'
 
-            if (!allowedExtensions.includes(fileExtension)) {
-                localErrors.file = 'Only PDF or DOC files are allowed'
-                hasError = true
-            }
-
-            if (form.file.size > 2 * 1024 * 1024) {
-                localErrors.file = 'File size must be under 2MB'
-                hasError = true
-            }
-        }
+        const fileError = getFileError(form.file)
+        if (fileError) localErrors.file = fileError
 
         setFormErrors(localErrors)
+        const hasError = Object.values(localErrors).some(Boolean)
         if (hasError) {
             toast.error('Please fix the highlighted errors before submitting')
             return
         }
 
-        if (hasError) {
-            setFormErrors(localErrors)
-            toast.error('Please fix the highlighted errors before submitting')
-            return
-        }
-
-        toast.success('Form submitted successfully 🎉')
+        toast.success('Form details are ready to review')
         setOpenModal(true)
-
     }
 
     const handleReset = () => {
-        setForm({
-            fname: '', lname: '', email: '', contact: '',
-            gender: 'Male', subjects: [], file: null,
-            url: '', choice: '', about: ''
-        })
+        setForm(createInitialForm())
         setFormErrors({})
+        setOpenModal(false)
+        if (fileInputRef.current) fileInputRef.current.value = ''
     }
 
 
     const handleExportJSON = () => {
-        const dataStr = JSON.stringify(form, null, 2)
+        const { file, ...formFields } = form
+        const exportData = {
+            ...formFields,
+            resume: file ? { name: file.name, size: file.size, type: file.type } : null
+        }
+        const dataStr = JSON.stringify(exportData, null, 2)
         const blob = new Blob([dataStr], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
 
@@ -174,29 +157,38 @@ const FormApp = () => {
         link.href = url
         link.download = 'form_data.json'
         link.click()
-        URL.revokeObjectURL(url)
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000)
     }
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
+        const { default: jsPDF } = await import('jspdf')
         const doc = new jsPDF()
         doc.setFontSize(12)
         doc.text('React Form Submission Summary', 10, 10)
 
         const lines = [
-            `First Name: ${form.fname}`,
-            `Last Name: ${form.lname}`,
-            `Email: ${form.email}`,
-            `Contact: ${form.contact}`,
-            `Gender: ${form.gender}`,
-            `Subjects: ${form.subjects.join(', ')}`,
-            `Resume: ${form.file?.name || 'N/A'}`,
-            `URL: ${form.url}`,
-            `Choice: ${form.choice}`,
-            `About: ${form.about}`
+            ['First Name', form.fname],
+            ['Last Name', form.lname],
+            ['Email', form.email],
+            ['Contact', form.contact],
+            ['Gender', form.gender],
+            ['Subjects', form.subjects.join(', ')],
+            ['Resume filename', form.file?.name || 'N/A'],
+            ['URL', form.url],
+            ['Choice', form.choice],
+            ['About', form.about]
         ]
 
-        lines.forEach((line, i) => {
-            doc.text(line, 10, 20 + i * 10)
+        let cursorY = 20
+        lines.forEach(([label, value]) => {
+            const wrappedLines = doc.splitTextToSize(`${label}: ${value}`, 190)
+            const blockHeight = wrappedLines.length * 7
+            if (cursorY + blockHeight > 280) {
+                doc.addPage()
+                cursorY = 20
+            }
+            doc.text(wrappedLines, 10, cursorY)
+            cursorY += blockHeight + 3
         })
 
         doc.save('form_data.pdf')
@@ -206,16 +198,16 @@ const FormApp = () => {
     return (
         <>
             <Styled.FormWrapper>
-<div className="intro" id="features">
+                <div className="intro" id="features">
                     <Typography variant="h4" align="center" color="primary">Validated form workspace</Typography>
-                    <p>Collect profile details, validate every field, review the submission and export a clean summary when it is ready.</p>
+                    <p>Enter profile details locally, validate each field, review a summary and export it when ready. Nothing is sent to a server, and the selected resume file is never uploaded.</p>
                 </div>
                 <div className="featuresUseCasesWrapper">
                     <div className="features">
                         <strong>Included features</strong>
                         <ul>
                             <li>Real-time validation for required fields</li>
-                            <li>Resume upload checks for PDF and DOC files</li>
+                            <li>Local PDF, DOC and DOCX file checks; only the filename is exported</li>
                             <li>Submission preview with JSON and PDF export</li>
                             <li>Responsive Material UI layout and toast feedback</li>
                         </ul>
@@ -223,19 +215,21 @@ const FormApp = () => {
                     <div className="useCases">
                         <strong>Useful for</strong>
                         <ul>
-                            <li>Candidate onboarding and resume collection</li>
-                            <li>Registration and feedback forms</li>
-                            <li>Validated data collection prototypes</li>
+                            <li>Resume form prototypes with local file checks</li>
+                            <li>Registration and feedback form prototypes</li>
+                            <li>Client-side validation demonstrations</li>
                         </ul>
                     </div>
                 </div>
-                <Styled.Form id="form" onSubmit={handleSubmit}>
+                <Styled.Form id="form" noValidate onSubmit={handleSubmit}>
                     <Styled.InputsWrapper>
                         <TextField
-                            label="First Name*"
+                            label="First Name"
                             name="fname"
+                            required
                             fullWidth
                             margin="normal"
+                            inputProps={{ maxLength: 100 }}
                             onChange={handleChange}
                             value={form.fname}
                             className='input'
@@ -243,10 +237,12 @@ const FormApp = () => {
                             helperText={formErrors.fname}
                         />
                         <TextField
-                            label="Last Name*"
+                            label="Last Name"
                             name="lname"
+                            required
                             fullWidth
                             margin="normal"
+                            inputProps={{ maxLength: 100 }}
                             onChange={handleChange}
                             value={form.lname}
                             className='input'
@@ -257,11 +253,14 @@ const FormApp = () => {
 
                     <Styled.InputsWrapper>
                         <TextField
-                            label="Enter Email*"
+                            label="Email"
                             name="email"
                             type="email"
+                            required
+                            autoComplete="email"
                             fullWidth
                             margin="normal"
+                            inputProps={{ maxLength: 254 }}
                             onChange={handleChange}
                             value={form.email}
                             className='input'
@@ -269,10 +268,13 @@ const FormApp = () => {
                             helperText={formErrors.email}
                         />
                         <TextField
-                            label="Contact*"
+                            label="Contact (10 digits)"
                             name="contact"
+                            type="tel"
+                            required
                             fullWidth
                             margin="normal"
+                            inputProps={{ inputMode: 'numeric', maxLength: 10 }}
                             onChange={handleChange}
                             value={form.contact}
                             className='input'
@@ -283,19 +285,20 @@ const FormApp = () => {
 
                     <Styled.InputsWrapper>
                         <div className='input'>
-                            <FormLabel component="legend">Gender*</FormLabel>
-                            <RadioGroup row name="gender" value={form.gender} onChange={handleChange}>
+                            <FormLabel id="gender-label" component="legend" required error={!!formErrors.gender}>Gender</FormLabel>
+                            <RadioGroup row aria-labelledby="gender-label" name="gender" value={form.gender} onChange={handleChange}>
                                 <FormControlLabel value="Male" control={<Radio />} label="Male" />
                                 <FormControlLabel value="Female" control={<Radio />} label="Female" />
                                 <FormControlLabel value="Other" control={<Radio />} label="Other" />
                             </RadioGroup>
+                            {formErrors.gender && <Typography variant="caption" color="error">{formErrors.gender}</Typography>}
                         </div>
                         <div className='input'>
-                            <FormLabel
-                                component="legend"
-                            >Your best Subject*</FormLabel>
+                            <FormLabel id="subjects-label" component="legend" required>Your best subject</FormLabel>
+                            <div role="group" aria-labelledby="subjects-label">
                             <FormControlLabel
-                                control={<Checkbox
+                            control={<Checkbox
+                                    name="subjects"
                                     value="English"
                                     checked={form.subjects.includes("English")}
                                     onChange={handleChange} />}
@@ -303,6 +306,7 @@ const FormApp = () => {
                             />
                             <FormControlLabel
                                 control={<Checkbox
+                                    name="subjects"
                                     value="Maths"
                                     checked={form.subjects.includes("Maths")}
                                     onChange={handleChange} />}
@@ -310,11 +314,13 @@ const FormApp = () => {
                             />
                             <FormControlLabel
                                 control={<Checkbox
+                                    name="subjects"
                                     value="Physics"
                                     checked={form.subjects.includes("Physics")}
                                     onChange={handleChange} />}
                                 label="Physics"
                             />
+                            </div>
                             {formErrors.subjects && (
                                 <Typography variant="caption" color="error">{formErrors.subjects}</Typography>
                             )}
@@ -327,8 +333,9 @@ const FormApp = () => {
                             component="label"
                             className='uploadResumeButton'
                         >
-                            Upload Resume*
+                            Choose Resume
                             <input
+                                ref={fileInputRef}
                                 type="file"
                                 hidden
                                 name="file"
@@ -338,7 +345,7 @@ const FormApp = () => {
                         </Button>
                         {form.file && (
                             <Typography variant="body2" color="textSecondary">
-                                Uploaded: {form.file.name}
+                                Selected: {form.file.name}
                             </Typography>
                         )}
                         {formErrors.file && (
@@ -348,10 +355,13 @@ const FormApp = () => {
 
                     <Styled.InputsWrapper>
                         <TextField
-                            label="Enter URL*"
+                            label="URL"
                             name="url"
+                            type="url"
+                            required
                             fullWidth
                             margin="normal"
+                            inputProps={{ maxLength: 2048 }}
                             onChange={handleChange}
                             value={form.url}
                             className='input'
@@ -362,12 +372,15 @@ const FormApp = () => {
                             fullWidth
                             margin="normal"
                             className='input'
+                            required
                             error={!!formErrors.choice}
                         >
-                            <InputLabel>Select your choice</InputLabel>
+                            <InputLabel id="choice-label">Select your choice</InputLabel>
                             <Select
+                                labelId="choice-label"
                                 name="choice"
                                 value={form.choice}
+                                label="Select your choice"
                                 onChange={handleChange}
                             >
                                 <MenuItem value="">Select</MenuItem>
@@ -379,15 +392,17 @@ const FormApp = () => {
                         </FormControl>
                     </Styled.InputsWrapper>
 
-                    <TextField
-                        label="About*"
+                        <TextField
+                        label="About"
                         name="about"
+                        required
                         multiline
                         minRows={4}
                         fullWidth
                         margin="normal"
                         onChange={handleChange}
                         value={form.about}
+                        inputProps={{ maxLength: 1000 }}
                         error={!!formErrors.about}
                         helperText={formErrors.about}
                     />
@@ -396,6 +411,7 @@ const FormApp = () => {
                         <Button
                             variant="contained"
                             color="success"
+                            type="button"
                             onClick={handleReset}
                         >Reset</Button>
                         <Button
@@ -411,7 +427,7 @@ const FormApp = () => {
                 open={openModal}
                 onClose={() => setOpenModal(false)}
             >
-                <DialogTitle>Submission Successful</DialogTitle>
+                <DialogTitle>Submission Ready to Review</DialogTitle>
                 <DialogContent dividers>
                     <Typography><strong>First Name:</strong> {form.fname}</Typography>
                     <Typography><strong>Last Name:</strong> {form.lname}</Typography>
